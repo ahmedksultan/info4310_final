@@ -146,8 +146,8 @@
             <div data-scrolly-down="moveFromLeft" >
                 <svg id="sum-graph-1" height="300" width="500" style="border: none;"></svg>
                 <svg id="sum-graph-2" height="300" width="500" style="border: none;"></svg>
+                <svg id="legend-1" height="20" width="500"></svg>
             </div>
-            <br>
             <p>It is clear that the <b>number</b> of trips made by New York taxi cabs has <b>gone
                 down significantly</b> over the past few years. Because the selected date was <i>before</i>
                 the pandemic lockdown went into full force in 2020, the effects are not clearly
@@ -167,8 +167,8 @@
             <div data-scrolly-down="moveFromRight" >
                 <svg id="sum-graph-3" height="300" width="500" style="border: none;"></svg>
                 <svg id="sum-graph-4" height="300" width="500" style="border: none;"></svg>
+                <svg id="legend-2" height="20" width="500"></svg>
             </div>
-            <br>
             <p>We can also see that <b>average trip time</b> and <b>average trip distance</b> have remained fairly
                 <b>consistent</b>, but <b style="color: #A4D563">green boro taxis</b> generally take longer trips than their
                 <b style="color: #FFD854">yellow counterparts</b>. This makes sense, as the nature
@@ -529,7 +529,43 @@
                 .attr("font-style", "italic")
                 .text("price ($)")
             
+            const legend1 = d3.select("#legend-1")
+            
+            legend1.append("rect")
+                .attr("class", "legend")
+                .attr("x", 170)
+                .attr("y", 0)
+                .attr("height", 20)
+                .attr("width", 20)
+                .attr("fill", "#ebbc1c")
+                .attr("stroke", "none");
 
+            legend1.append("text")
+                .attr("class", "legend")
+                .attr("x", 200)
+                .attr("y", 12)
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .text("yellow taxi");
+
+            legend1.append("rect")
+                .attr("class", "legend")
+                .attr("x", 270)
+                .attr("y", 0)
+                .attr("height", 20)
+                .attr("width", 20)
+                .attr("fill", "#8ee51b")
+                .attr("stroke", "none");
+
+            legend1.append("text")
+                .attr("class", "legend")
+                .attr("x", 300)
+                .attr("y", 12)
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .text("green taxi");
 
             const sum3 = d3.select("#sum-graph-3");
             const sum3_W = sum3.attr("width") - margin.left - margin.right;
@@ -755,7 +791,43 @@
                 .attr("font-style", "italic")
                 .text("distance (miles)")
 
+            const legend2 = d3.select("#legend-2")
             
+            legend2.append("rect")
+                .attr("class", "legend")
+                .attr("x", 170)
+                .attr("y", 0)
+                .attr("height", 20)
+                .attr("width", 20)
+                .attr("fill", "#ebbc1c")
+                .attr("stroke", "none");
+
+            legend2.append("text")
+                .attr("class", "legend")
+                .attr("x", 200)
+                .attr("y", 12)
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .text("yellow taxi");
+
+            legend2.append("rect")
+                .attr("class", "legend")
+                .attr("x", 270)
+                .attr("y", 0)
+                .attr("height", 20)
+                .attr("width", 20)
+                .attr("fill", "#8ee51b")
+                .attr("stroke", "none");
+
+            legend2.append("text")
+                .attr("class", "legend")
+                .attr("x", 300)
+                .attr("y", 12)
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .text("green taxi");
 
             // INTERACTIVE ZONE MAPPER
             const zone_data = await d3.json("data/taxizones.json");
