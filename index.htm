@@ -1,0 +1,2813 @@
+<html>
+    <head>
+        <title>INFO 4310 - Final project</title>
+
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://d3js.org/topojson.v2.min.js"></script>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+        <script src="https://kit.fontawesome.com/35a2d6f7b8.js" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="src/jquery-3.7.1.min.js"></script>
+
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+        <link rel="stylesheet" href="src/cssanimation.min.css"> 
+        
+        <style>
+            
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #1c1d1f;
+            }
+            
+            .header {
+                color: white;
+                text-align: center;
+                font-family: 'Helvetica';
+                padding: 0;
+                margin: 0;
+                padding-top: 5em;
+            }
+
+            .page-title {
+                font-size: 96px;
+                margin: 0;
+            }
+
+            .header .page-subtitle { 
+                font-size: 24px;
+                letter-spacing: 0.5em;
+            }
+
+            #intro, #overview, #route-mapper, #animated, #conclusion {
+                width: 70%;
+                text-align: center;
+                margin: 0 auto;
+            }
+
+            .article-text {
+                font-size: 18px;
+                font-family: "Libre Baskerville";
+                font-weight: 400;
+                color: #efefef;
+            }
+
+            .article-subtitle {
+                font-size: 36px;
+                text-decoration: underline;
+                font-family: 'Helvetica';
+            }
+
+            .wobble {
+                animation-name: wobble;
+                animation-duration: 2.5s;
+                animation-iteration-count: infinite;
+                animation-timing-function: ease-in-out;
+                padding: 0;
+                margin: 0;
+            }
+
+            @keyframes wobble {
+                0% { transform: translate(0, 0px); }
+                50% { transform: translate(0, 15px); }
+                100% { transform: translate(0, -0px); }
+            }
+
+            .select-pickup, .select-dropoff {
+                width: 40%;
+                height: 30px !important;
+            }
+
+            button {
+                height: 30px !important;
+            }
+            
+        </style>
+    </head>
+
+    <body>
+        <div class="header">
+            <h1 class="page-title"><b>Hailing History</b></h1><br> <br>
+            <span class="page-subtitle"><i>UNRAVELING TAXI TRIP DATA IN NEW YORK CITY</i></span> <br> <br>
+            <p>by <b>Ahmed Khaled Sultan</b> (aks264), for Prof. Rzeszotarski's INFO 4310 class</p> <br>
+        </div>
+
+        <div id="intro" class="article-text">
+            <hr>
+            <br>
+            <p data-scrolly-down="blurInBottom">It is difficult for one to picture a New York City street in their mind without iconic, 
+                <b style="color: #FFD854">bright-yellow</b> <i>(... or maybe <span style="color: #a4d563">green</span>)</i> 
+                <b style="color: #FFD854">taxi cabs</b> swarming throughout. 
+                Over the decades, the cab has transformed from a means of transportation 
+                into a New York City icon: serving as a ubiquitous symbol of mobility in the 
+                urban context.</p>
+            <p> 
+            <br>
+            <img data-scrolly-down="moveFromRight" src="img/homealone.gif" width="30%" height="165px">
+            <img data-scrolly-down="flipY" src="img/taxidriver.gif" width="30%" height="165px">
+            <img data-scrolly-down="moveFromLeft" src="img/midnightcowboy.gif" width="30%" height="165px">
+            <br> <br>
+            <p data-scrolly-down="blurInBottom">However, the dominant presence of the taxi has faced <b style="color: #FFD854">significant 
+                challenges</b> in recent years. The rise of <b style="color: #FFD854">ridesharing services</b>, like Uber and Lyft, 
+                has completely reshaped the transportation landscape in New York. The <b style="color: #FFD854">COVID-19 
+                pandemic</b> also dealt a significant blow to taxi drivers and fleet managers, exacerbating
+                existing issue in the industry while bringing about new challenges as well. 
+            </p>
+            <br>
+            <hr>
+        </div>
+
+        <div id="overview" class="article-text">
+            <h2 class="article-subtitle">Data overview</h2>
+            <p>
+                <a style="color: #efefef" href="https://opendata.cityofnewyork.us/">NYC Open Data</a> publishes a complete yearly record of 
+                all trips made by <span style="color: #FFD854">yellow</span> and <span style="color: #A4D563">green</span> taxi cabs. 
+            </p>
+            <p data-scrolly-down="moveFromLeft"><i>(A quick note: <span style="color: #A4D563">green</span> taxis, or boro taxis, were introduced in 2011 to improve access to taxis outside of New York's core.
+                They serve upper Manhattan and the outer boroughs of Brooklyn, Queens, the Bronx, and Staten Island.)</i>
+            </p>
+            <img class="wobble" src="img/yellowtaxi.png" width="40%" height="auto">
+            <img class="wobble" src="img/greentaxi.png" width="40%" height="auto">
+            <br>
+            <p>
+                This is really great, until you realize that each year has <u>millions</u> of trips 
+                recorded. There were 112M <span style="color: #FFD854">yellow</span> cab trips 
+                recorded in 2018 alone! As a result, I picked an arbitrary <i>Wednesday</i> in <i>February</i>*, and only selected trips 
+                that originated on that day from 2017 to 2022.
+            </p>
+            <p data-scrolly-down="moveFromRight"><i>*(Wednesday, February 14th, 2018 is Valentine's Day, which might've affected the data.)</i>
+            </p>
+            <br>
+            <div data-scrolly-down="moveFromLeft" >
+                <svg id="sum-graph-1" height="300" width="500" style="border: none;"></svg>
+                <svg id="sum-graph-2" height="300" width="500" style="border: none;"></svg>
+            </div>
+            <br>
+            <p>It is clear that the <b>number</b> of trips made by New York taxi cabs has <b>gone
+                down significantly</b> over the past few years. Because the selected date was <i>before</i>
+                the pandemic lockdown went into full force in 2020, the effects are not clearly
+                observed until 2021. This is likely because many employers in the city
+                shifted to a <i>'work-from-home'</i> model following the pandemic, leading to
+                fewer trips made to and from work.
+            </p>
+            <p>
+                A <a style="color: #efefef" href="https://www.proquest.com/docview/2672015744?pq-origsite=gscholar&fromopenview=true&sourcetype=Dissertations%20&%20Theses">paper</a> 
+                by A. Z. Chowdhury published in 2022 used machine learning methods on a similar
+                dataset and found that before the pandemic, taxi demand on Saturdays (the weekend)
+                was even higher than on Mondays (a weekday). After the pandemic, this trend reversed.
+                She posits that this is due to people reducing their number of recreational trips (going out,
+                going shopping, family outings, etc.) post-pandemic.
+            </p>
+            <br>
+            <div data-scrolly-down="moveFromRight" >
+                <svg id="sum-graph-3" height="300" width="500" style="border: none;"></svg>
+                <svg id="sum-graph-4" height="300" width="500" style="border: none;"></svg>
+            </div>
+            <br>
+            <p>We can also see that <b>average trip time</b> and <b>average trip distance</b> have remained fairly
+                <b>consistent</b>, but <b style="color: #A4D563">green boro taxis</b> generally take longer trips than their
+                <b style="color: #FFD854">yellow counterparts</b>. This makes sense, as the nature
+                of boro taxis (picking up in under-served areas of Manhattan and the outer boroughs)
+                likely lends itself to longer trips into the Manhattan core or other parts of the city.
+            </p>
+            <p>
+                The <b style="color: #A4D563">boro taxi spike</b> (and slight dip in <b style="color:#FFD854">yellow taxi</b>) average time and distance 
+                in 2021 might be due to people avoiding public transit, as the COVID-19 pandemic was still ongoing
+                at that time.
+            </p>
+            <br>
+        </div>
+        <div id="route-mapper" class="article-text">
+            <hr>
+            <br>
+            <h2 class="article-subtitle">A typical trip...</h2>
+            <p>This model is far from perfect, but is trained on the combined trip data from 2017-2022. It does an OK job with east-west trips,
+                and north-south trips within Manhattan, but seems to get tripped up everywhere else. Try it!
+            </p>
+            <br>
+            <select class="select-pickup" id="select-pickup" name="pickup">
+
+            </select>
+            <span>&emsp;to&emsp;</span>
+            <select class="select-dropoff" id="select-dropoff" name="dropoff"> 
+
+            </select>
+            <button onclick="go_func()">Go!</button>
+              
+        
+            <br>
+            <br>
+            <br>
+
+            <svg id="big-map" height="1000" width="1000" style="display: block; border: none; margin: 0 auto !important; text-align: center;"></svg>
+            <br>
+            <p>
+                A lot can be done to improve this model, but after obsessing over it for <i>way too long</i>,
+                I decided to limit the scope to show this tool more as a 'proof-of-concept'. One-hot encoding
+                of borough/zone variables for pick-up and drop-off might've led to more accurate predictions.
+                Additionally, the model has no idea that there are bridges/tunnels/highways, etc. that might
+                make certain trips faster or slower.
+            </p>
+            <p>
+                I experimented with some of these methods, but wasn't able to fine-tune the model enough
+                for the results to make sense. Instead, we are left with a model that sometimes over-/under-estimates trip cost and time.
+                I'd like to work on this more to try and incorporate some of those improvements, making a better
+                tool.
+            </p>
+            <br>
+            
+        </div>
+        <div id="animated" class="article-text">
+            <hr>
+            <br>
+            <h2 class="article-subtitle">Daily patterns</h2>
+            <p>
+                I used <a href="https://kepler.gl/" style="color: #efefef">kepler.gl</a> to
+                animate some 2022 data, in order to get a better sense of how trip trends change <i>throughout</i> the day.
+                <i>By default, each window is set to a 30m 'moving window', and the playback can be changed with the speed controls.</i>
+            </p>
+            <br>
+            <button data-scrolly-down="blurInBottom" onclick="load_func_1()">Load trip arc visualization</button>
+            <br><br><br>
+            <iframe data-scrolly-down="blurInTop" id="iframe1" src="" height="0" width="100%" style="border: none;"></iframe>
+            <br>
+            <p id="arc_info" style="display: none;"><br>Here, trips are represented as arcs between taxi zones, with <b style="color: dodgerblue">pick-ups</b>
+                represented in blue and <b style="color: goldenrod">drop-offs</b> represented in yellow. One interesting thing to note is the majority of
+                trips from <b>JFK</b> and <b>LaGuardia</b> airports tend to be <b style="color: dodgerblue">pick-ups</b>. Also, most trip components 
+                that occur in the <b>outer boroughs</b> tend to be <b style="color: goldenrod">drop-offs</b>. Interestingly enough, most trips that <b>originate</b> in
+                the outer boroughs tend to stay within the outer boroughs. <br><br><i>See if you can spot the boro-boro trips!</i><br>
+            </p>
+            <br>
+            <button data-scrolly-down="blurInBottom" onclick="load_func_2()">Load pick-up heatmap</button>
+            <br><br><br>
+            <iframe data-scrolly-down="blurInTop" id="iframe2" src="" height="0" width="100%" style="border: none;"></iframe>
+            <br>
+            <p id="pu_hex_info" style="display: none;">
+                <br>
+                This hex heatmap shows the relative density of cab <b style="color: dodgerblue">pick-ups</b>.
+                You can see here that most of midtown Manhattan, along with the airports, remains hot spots throughout the day.
+                It's also made more apparent that <b>most</b> trips <b>originate</b> in Manhattan.
+                <br>
+            </p>
+            <br>
+            <button data-scrolly-down="blurInBottom" onclick="load_func_3()">Load drop-off heatmap</button>
+            <br><br><br>
+            <iframe data-scrolly-down="blurInTop" id="iframe3" src="" height="0" width="100%" style="border: none;"></iframe>
+            <br>
+            <p id="do_hex_info" style="display: none;">
+                <br>
+                This hex heatmap shows the relative density of taxi <b style="color: goldenrod">drop-offs</b> (depicted here in red instead for
+                improved visibility). When compared to the pick-up heatmap, you can see that distribution of drop-offs is much more <b>spread
+                out</b> throughout the city, with Manhattan still remaining at the core of many of these trips.
+                <br>
+            </p>
+            <br>
+            <button data-scrolly-down="blurInBottom" onclick="load_func_4()">Load full heatmap</button>
+            <br><br><br>
+            <iframe data-scrolly-down="blurInTop" id="iframe4" src="" height="0" width="100%" style="border: none;"></iframe>
+            <br>
+            <p id="all_hex_info" style="display: none;">
+                <br>
+                Here, this heatmap overlays the <b style="color: dodgerblue">pick-ups</b> 
+                and <b style="color: goldenrod">drop-off</b> data from earlier. <b style="color: purple">Purple areas</b> represent
+                zones with higher levels of both trip components, and can be interpreted as activity hotspots for taxi cab trips. <b>White</b> areas
+                are zones with some activity, but to a lesser degree than those core areas mentioned before.
+                <br>
+            </p>
+            <br>
+        </div>
+        <div id="conclusion" class="article-text">
+            <hr>
+            <br>
+            <h2 class="article-subtitle">Conclusions</h2>
+            <p data-scrolly-down="moveFromLeft">
+                This is a very rich dataset, with a lot more possibilities to explore beyond
+                what I've done in this article. From this analysis, it's clear that the frequency of taxi trips
+                has declined significantly in the past few years, and while the taxi cab industry has recovered 
+                somewhat from the effects of the pandemic, there is still significant pressure on drivers. One can also see first-hand how <b>centered</b> the industry is on the city's Manhattan core,
+                whereas those in neighborhoods underserved by public transit in the outer boroughs still seem to be left
+                behind.
+            </p>
+            <p data-scrolly-down="moveFromRight">
+                Originally, Uber, Lyft and other third-party ridesharing services came on to the New York
+                scene as a low-cost alternative to the traditional taxi. As prices of those services have risen,
+                New York has positioned the taxi as the more economical alternative to ordering an Uber and Lyft.
+                However, in 2022, <a href="https://www.nytimes.com/2022/11/17/nyregion/taxi-fare-hike-nyc.html" style="color: #efefef">
+                taxi fares were increased</a>, raising the average cost by 23%. While this has been good news for drivers
+                struggling to make a living, the effect of this price hike on mobility and accessibility within the city have yet to be explored in-depth.
+            </p>
+            <p>
+                <i>
+                    All GIFs included this article are courtesy of <a style="color: #efefef" href="https://giphy.com/">GIPHY</a>, and are 
+                    source from Home Alone 2: Lost in New York, Taxi Driver and Midnight Cowboy, in order of apperance.
+                    The images of the taxis were found on Adobe Stock, and edited by me.
+                </i>
+            </p>
+            <br>
+        </div>
+
+        <script type="text/javascript" src="src/scrolly.min.js"></script>
+        
+    </body>
+
+    <script>
+        window.onload = function() {
+          scrolly();
+        };
+
+        const requestData = async function() {
+
+            // --   SUMMARY DATA    --
+            const sy_data = await d3.csv("data/sum_year_data.csv")
+            // console.log(sy_data);
+
+            const margin = { top: 20, bottom: 40, right: 20, left: 60 };
+
+            const sum1 = d3.select("#sum-graph-1");
+            const sum1_W = sum1.attr("width") - margin.left - margin.right;
+            const sum1_H = sum1.attr("height") - margin.top - margin.bottom;
+
+            sum1.append("g")
+                .attr("transform",`translate(${margin.left},${margin.top})`);
+
+            let sum1_annotations = sum1.append("g").attr("id","annotations");
+            let sum1_area = sum1.append("g").attr("id","points")
+                .attr("transform",`translate(${margin.left},${margin.top})`);
+
+            let xScale = d3.scaleBand()
+                .domain(sy_data.map(d => d.year))
+                .range([0, sum1_W])
+                .padding(0.2);
+            
+            let yScale = d3.scaleLinear()
+                .domain([0, 350000])
+                .range([sum1_H, 0]);
+
+            let bottomAxis = d3.axisBottom(xScale);
+            let leftAxis = d3.axisLeft(yScale).tickFormat(d3.format(".2s"));
+
+            sum1_annotations.append("g")
+                .attr("class", "y axis") 
+                .attr("transform", `translate(${margin.left - 10},${margin.top})`)
+                .call(leftAxis); 
+
+            sum1_annotations.append("g")
+                .attr("class", "x axis") 
+                .attr("transform", `translate(${margin.left-10},${sum1_H+margin.top})`)
+                .call(bottomAxis);
+
+            sum1_area.selectAll(".bar.yellow")
+                .data(sy_data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", d => xScale(d.year))
+                .attr("y", d => yScale(d.yellow_size))
+                .attr("width", xScale.bandwidth() / 2)
+                .attr("height", d => sum1_H - yScale(d.yellow_size))
+                .attr("fill", "#ebbc1c")
+
+            sum1_area.selectAll(".bar.green")
+                .data(sy_data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", d => xScale(d.year) + xScale.bandwidth() / 2)
+                .attr("y", d => yScale(d.green_size))
+                .attr("width", xScale.bandwidth() / 2)
+                .attr("height", d => sum1_H - yScale(d.green_size))
+                .attr("fill", "#8ee51b")
+            
+            sum1_area.append("text")
+                .attr("class", "title")
+                .attr("x", 200)
+                .attr("y", 5)
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "18px")
+                .attr("font-family", "Helvetica")
+                .attr("font-weight", "bold")
+                .text("Daily trips made")
+            
+            sum1.append("text")
+                .attr("class", "legend")
+                .attr("x", 260)
+                .attr("y", 290)
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .attr("font-style", "italic")
+                .text("year")
+            
+            sum1.append("text")
+                .attr("class", "legend")
+                .attr("x", -140)
+                .attr("y", 10)
+                .attr("transform", "rotate(-90)")
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .attr("font-style", "italic")
+                .text("trips made")
+
+
+
+            const sum2 = d3.select("#sum-graph-2");
+            const sum2_W = sum2.attr("width") - margin.left - margin.right;
+            const sum2_H = sum2.attr("height") - margin.top - margin.bottom;
+
+            sum2.append("g")
+                .attr("transform",`translate(${margin.left},${margin.top})`);
+
+            let sum2_annotations = sum2.append("g").attr("id","annotations");
+            let sum2_area = sum2.append("g").attr("id","points")
+                .attr("transform",`translate(${margin.left+15},${margin.top})`);
+            
+            let yScale_Price = d3.scaleLinear()
+                .domain([10, 25])
+                .range([sum2_H, 0]);
+            
+            // let bottomAxis_sum2 = d3.axisBottom(xScale_Yr);
+            let leftAxis_sum2 = d3.axisLeft(yScale_Price).tickFormat(d3.format("$.2s"));
+
+            sum2_annotations.append("g")
+                .attr("class", "y axis") 
+                .attr("transform", `translate(${margin.left - 10},${margin.top})`)
+                .call(leftAxis_sum2); 
+
+            sum2_annotations.append("g")
+                .attr("class", "x axis") 
+                .attr("transform", `translate(${margin.left-10},${sum2_H+margin.top})`)
+                .call(bottomAxis);
+
+            let yellow_price_line = d3.line()
+                .x( d => { return xScale(d.year) })
+                .y( d => { return yScale_Price(d.yellow_avg_price)});
+            
+            let green_price_line = d3.line()
+                .x( d => { return xScale(d.year) })
+                .y( d => { return yScale_Price(d.green_avg_price)});
+
+            sum2_area.append("path")
+                .datum(sy_data)
+                .attr("class", "priceline yellow")
+                .attr("fill", "none")
+                .attr("stroke", "#ebbc1c")
+                .attr("stroke-width", 2)
+                .attr("d", yellow_price_line);
+            
+            sum2_area.append("path")
+                .datum(sy_data)
+                .attr("class", "priceline green")
+                .attr("fill", "none")
+                .attr("stroke", "#8ee51b")
+                .attr("stroke-width", 2)
+                .attr("d", green_price_line);
+
+            let price_green_circles = sum2_area.selectAll("circle.pricepoint.green")
+                .data(sy_data)
+                .join(
+                    enter => { return enter.append("circle").attr("class", "pricepoint") }
+                )
+                .attr("cx", d => { return xScale(d.year); })
+                .attr("cy", d => { return yScale_Price(d.green_avg_price) })
+                .attr("r", 5)
+                .attr("fill", "#8ee51b")
+                .attr("stroke", "white")
+                .attr("stroke-width", 1)
+                .attr("opacity", 0.8);
+
+            let price_yellow_circles = sum2_area.selectAll("circle.pricepoint.yellow")
+                .data(sy_data)
+                .join(
+                    enter => { return enter.append("circle").attr("class", "pricepoint") }
+                )
+                .attr("cx", d => { return xScale(d.year); })
+                .attr("cy", d => { return yScale_Price(d.yellow_avg_price) })
+                .attr("r", 5)
+                .attr("fill", "#ebbc1c")
+                .attr("stroke", "white")
+                .attr("stroke-width", 1)
+                .attr("opacity", 0.8);
+
+            sum2_area.append("text")
+                .attr("class", "title")
+                .attr("x", 180)
+                .attr("y", 5)
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "18px")
+                .attr("font-family", "Helvetica")
+                .attr("font-weight", "bold")
+                .text("Average trip price")
+            
+            sum2.append("text")
+                .attr("class", "legend")
+                .attr("x", 260)
+                .attr("y", 290)
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .attr("font-style", "italic")
+                .text("year")
+            
+            sum2.append("text")
+                .attr("class", "legend")
+                .attr("x", -140)
+                .attr("y", 10)
+                .attr("transform", "rotate(-90)")
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .attr("font-style", "italic")
+                .text("price ($)")
+            
+
+
+            const sum3 = d3.select("#sum-graph-3");
+            const sum3_W = sum3.attr("width") - margin.left - margin.right;
+            const sum3_H = sum3.attr("height") - margin.top - margin.bottom;
+
+            sum3.append("g")
+                .attr("transform",`translate(${margin.left},${margin.top})`);
+
+            let sum3_annotations = sum3.append("g").attr("id","annotations");
+            let sum3_area = sum3.append("g").attr("id","points")
+                .attr("transform",`translate(${margin.left+15},${margin.top})`);
+            
+            let yScale_Duration = d3.scaleLinear()
+                .domain([10, 21])
+                .range([sum3_H, 0]);
+
+            let leftAxis_sum3 = d3.axisLeft(yScale_Duration);
+            
+            sum3_annotations.append("g")
+                .attr("class", "y axis") 
+                .attr("transform", `translate(${margin.left - 10},${margin.top})`)
+                .call(leftAxis_sum3); 
+
+            sum3_annotations.append("g")
+                .attr("class", "x axis") 
+                .attr("transform", `translate(${margin.left-10},${sum3_H+margin.top})`)
+                .call(bottomAxis);
+
+            let yellow_duration_line = d3.line()
+                .x( d => { return xScale(d.year) })
+                .y( d => { return yScale_Duration(d.yellow_avg_duration)});
+            
+            let green_duration_line = d3.line()
+                .x( d => { return xScale(d.year) })
+                .y( d => { return yScale_Duration(d.green_avg_duration)});
+
+            sum3_area.append("path")
+                .datum(sy_data)
+                .attr("class", "durationline yellow")
+                .attr("fill", "none")
+                .attr("stroke", "#ebbc1c")
+                .attr("stroke-width", 2)
+                .attr("d", yellow_duration_line);
+            
+            sum3_area.append("path")
+                .datum(sy_data)
+                .attr("class", "durationline green")
+                .attr("fill", "none")
+                .attr("stroke", "#8ee51b")
+                .attr("stroke-width", 2)
+                .attr("d", green_duration_line);
+
+            let duration_green_circles = sum3_area.selectAll("circle.durationpt.green")
+                .data(sy_data)
+                .join(
+                    enter => { return enter.append("circle").attr("class", "durationpt") }
+                )
+                .attr("cx", d => { return xScale(d.year); })
+                .attr("cy", d => { return yScale_Duration(d.green_avg_duration) })
+                .attr("r", 5)
+                .attr("fill", "#8ee51b")
+                .attr("stroke", "white")
+                .attr("stroke-width", 1)
+                .attr("opacity", 0.8);
+
+            let duration_yellow_circles = sum3_area.selectAll("circle.durationpt.yellow")
+                .data(sy_data)
+                .join(
+                    enter => { return enter.append("circle").attr("class", "durationpt") }
+                )
+                .attr("cx", d => { return xScale(d.year); })
+                .attr("cy", d => { return yScale_Duration(d.yellow_avg_duration) })
+                .attr("r", 5)
+                .attr("fill", "#ebbc1c")
+                .attr("stroke", "white")
+                .attr("stroke-width", 1)
+                .attr("opacity", 0.8);
+            
+            sum3.append("text")
+                .attr("class", "title")
+                .attr("x", 280)
+                .attr("y", 20)
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "18px")
+                .attr("font-family", "Helvetica")
+                .attr("font-weight", "bold")
+                .text("Average trip duration")
+            
+            sum3.append("text")
+                .attr("class", "legend")
+                .attr("x", 260)
+                .attr("y", 290)
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .attr("font-style", "italic")
+                .text("year")
+            
+            sum3.append("text")
+                .attr("class", "legend")
+                .attr("x", -140)
+                .attr("y", 10)
+                .attr("transform", "rotate(-90)")
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .attr("font-style", "italic")
+                .text("duration (min)")
+            
+
+
+            const sum4 = d3.select("#sum-graph-4");
+            const sum4_W = sum4.attr("width") - margin.left - margin.right;
+            const sum4_H = sum4.attr("height") - margin.top - margin.bottom;
+
+            sum4.append("g")
+                .attr("transform",`translate(${margin.left},${margin.top})`);
+
+            let sum4_annotations = sum4.append("g").attr("id","annotations");
+            let sum4_area = sum4.append("g").attr("id","points")
+                .attr("transform",`translate(${margin.left+15},${margin.top})`);
+            
+            let yScale_Distance = d3.scaleLinear()
+                .domain([2, 5])
+                .range([sum4_H, 0]);
+
+            let leftAxis_sum4 = d3.axisLeft(yScale_Distance);
+
+            sum4_annotations.append("g")
+                .attr("class", "y axis") 
+                .attr("transform", `translate(${margin.left - 10},${margin.top})`)
+                .call(leftAxis_sum4); 
+
+            sum4_annotations.append("g")
+                .attr("class", "x axis") 
+                .attr("transform", `translate(${margin.left-10},${sum4_H+margin.top})`)
+                .call(bottomAxis);
+            
+            let yellow_dist_line = d3.line()
+                .x( d => { return xScale(d.year) })
+                .y( d => { return yScale_Distance(d.yellow_avg_dist)});
+            
+            let green_dist_line = d3.line()
+                .x( d => { return xScale(d.year) })
+                .y( d => { return yScale_Distance(d.green_avg_dist)});
+
+            sum4_area.append("path")
+                .datum(sy_data)
+                .attr("class", "distline yellow")
+                .attr("fill", "none")
+                .attr("stroke", "#ebbc1c")
+                .attr("stroke-width", 2)
+                .attr("d", yellow_dist_line);
+            
+            sum4_area.append("path")
+                .datum(sy_data)
+                .attr("class", "distline green")
+                .attr("fill", "none")
+                .attr("stroke", "#8ee51b")
+                .attr("stroke-width", 2)
+                .attr("d", green_dist_line);
+
+            let dist_green_circles = sum4_area.selectAll("circle.distpt.green")
+                .data(sy_data)
+                .join(
+                    enter => { return enter.append("circle").attr("class", "distpt") }
+                )
+                .attr("cx", d => { return xScale(d.year); })
+                .attr("cy", d => { return yScale_Distance(d.green_avg_dist) })
+                .attr("r", 5)
+                .attr("fill", "#8ee51b")
+                .attr("stroke", "white")
+                .attr("stroke-width", 1)
+                .attr("opacity", 0.8);
+
+            let dist_yellow_circles = sum4_area.selectAll("circle.distpt.yellow")
+                .data(sy_data)
+                .join(
+                    enter => { return enter.append("circle").attr("class", "distpt") }
+                )
+                .attr("cx", d => { return xScale(d.year); })
+                .attr("cy", d => { return yScale_Distance(d.yellow_avg_dist) })
+                .attr("r", 5)
+                .attr("fill", "#ebbc1c")
+                .attr("stroke", "white")
+                .attr("stroke-width", 1)
+                .attr("opacity", 0.8);
+
+            sum4.append("text")
+                .attr("class", "title")
+                .attr("x", 280)
+                .attr("y", 20)
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "18px")
+                .attr("font-family", "Helvetica")
+                .attr("font-weight", "bold")
+                .text("Average trip distance")
+            
+            sum4.append("text")
+                .attr("class", "legend")
+                .attr("x", 260)
+                .attr("y", 290)
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .attr("font-style", "italic")
+                .text("year")
+            
+            sum4.append("text")
+                .attr("class", "legend")
+                .attr("x", -140)
+                .attr("y", 10)
+                .attr("transform", "rotate(-90)")
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .attr("font-family", "Helvetica")
+                .attr("font-style", "italic")
+                .text("distance (miles)")
+
+            
+
+            // INTERACTIVE ZONE MAPPER
+            const zone_data = await d3.json("data/taxizones.json");
+
+            let selected_pu = document.getElementById("select-pickup");
+            let selected_do = document.getElementById("select-dropoff");
+
+            for (let z in zone_data) {
+
+                let opt = document.createElement('option');
+                opt.setAttribute('value', zone_data[z].name.replace(/\//g, '').replace(/'/g, '').replace(/ /g, ''));
+                opt.appendChild(document.createTextNode(zone_data[z].name));
+
+                let opt2 = document.createElement('option');
+                opt2.setAttribute('value', zone_data[z].name.replace(/\//g, '').replace(/'/g, '').replace(/ /g, ''));
+                opt2.appendChild(document.createTextNode(zone_data[z].name));
+
+                selected_pu.append(opt);
+                selected_do.append(opt2);
+
+            }
+
+            const map_data = await d3.json("data/nyc_taxizones.geojson");
+
+            const map_svg = d3.select("#big-map");
+            const map_svg_W = map_svg.attr("width");
+            const map_svg_H = map_svg.attr("height");
+
+            const map_margin = { top: 5, bottom: 5, right: 5, left: 5 };
+
+            const mapWidth = map_svg_W - map_margin.left - map_margin.right;
+            const mapHeight = map_svg_H - map_margin.top - map_margin.bottom;
+
+            let map = map_svg.append("g")
+                .attr("transform", "translate("+map_margin.left+","+map_margin.top+")");
+            
+            let projection = d3.geoMercator()
+                .fitSize([mapWidth, mapHeight], map_data); 
+            let path = d3.geoPath().projection(projection);
+
+            // console.log(map_data);
+
+            map.selectAll("path.zone").data(map_data.features)
+                .join("path")
+                .attr("class", "zone")
+                .attr("id", d => d.properties.zone.replace(/\//g, '').replace(/'/g, '').replace(/ /g, '' ))
+                .attr("d", path)
+                .attr("stroke", "white")
+                .attr('stroke-width', 1)
+                .attr("fill", "none");
+
+        }
+
+        let reverse_lookup = {
+            "NewarkAirport": [
+                "1",
+                145.38839118325268,
+                528.6643505477987,
+                -74.17400023521976,
+                40.691831185827
+            ],
+            "JamaicaBay": [
+                "2",
+                764.6343961489329,
+                687.534736205329,
+                -73.82648294307879,
+                40.62419551556987
+            ],
+            "AllertonPelhamGardens": [
+                "3",
+                727.322332885873,
+                122.40906827973959,
+                -73.84742225812545,
+                40.8644736990343
+            ],
+            "AlphabetCity": [
+                "4",
+                496.48346814184333,
+                453.62947617798636,
+                -73.97696769976491,
+                40.72375183484617
+            ],
+            "ArdenHeights": [
+                "5",
+                119.57952873647446,
+                855.39233937471,
+                -74.188484020208,
+                40.552659242351126
+            ],
+            "ArrocharFortWadsworth": [
+                "6",
+                327.5531082918169,
+                743.568262105633,
+                -74.07177044494973,
+                40.60032408358318
+            ],
+            "Astoria": [
+                "7",
+                598.5396859303873,
+                364.8670583081257,
+                -73.91969433801913,
+                40.7614925723915
+            ],
+            "AstoriaPark": [
+                "8",
+                592.4944133381941,
+                324.71182764240075,
+                -73.92308691018697,
+                40.778559069064165
+            ],
+            "Auburndale": [
+                "9",
+                833.2988579126832,
+                389.4672473235696,
+                -73.78794884253213,
+                40.75103500609106
+            ],
+            "BaisleyPark": [
+                "10",
+                827.8862266526849,
+                558.9257682666357,
+                -73.79098638002732,
+                40.678953321226466
+            ],
+            "BathBeach": [
+                "11",
+                442.0985363560321,
+                734.3006415709388,
+                -74.0074882103147,
+                40.60427286872782
+            ],
+            "BatteryPark": [
+                "12",
+                427.7191108012921,
+                502.5488782321336,
+                -74.01555786113401,
+                40.70294272677729
+            ],
+            "BatteryParkCity": [
+                "13",
+                426.7909732860862,
+                481.1691819324042,
+                -74.01607872656298,
+                40.71203792276574
+            ],
+            "BayRidge": [
+                "14",
+                402.176320345141,
+                686.0336346071126,
+                -74.02989232805325,
+                40.624834898362344
+            ],
+            "BayTerraceFortTotten": [
+                "15",
+                836.8209365768707,
+                313.4774443133647,
+                -73.7859722722672,
+                40.78333304373773
+            ],
+            "Bayside": [
+                "16",
+                859.1848166507261,
+                361.9362313885649,
+                -73.7734217915492,
+                40.762738360339
+            ],
+            "Bedford": [
+                "17",
+                544.7069413239951,
+                529.4251480920066,
+                -73.94990496430354,
+                40.69150745595144
+            ],
+            "BedfordPark": [
+                "18",
+                651.126231431379,
+                114.84862670629809,
+                -73.8901830714966,
+                40.867682335929345
+            ],
+            "Bellerose": [
+                "19",
+                942.5186555685941,
+                426.03553180729796,
+                -73.72665532101531,
+                40.73548674975297
+            ],
+            "Belmont": [
+                "20",
+                658.816287356196,
+                138.18090395435866,
+                -73.88586745639375,
+                40.85777966181488
+            ],
+            "BensonhurstEast": [
+                "21",
+                484.77721442622715,
+                740.9739863801951,
+                -73.9835371819412,
+                40.601429486560754
+            ],
+            "BensonhurstWest": [
+                "22",
+                463.89049018739024,
+                715.6513689106214,
+                -73.99525869131061,
+                40.6122183190186
+            ],
+            "BloomfieldEmersonHill": [
+                "23",
+                150.9359792394971,
+                729.1960727810947,
+                -74.17088696074765,
+                40.60644774436017
+            ],
+            "Bloomingdale": [
+                "24",
+                516.9549677337054,
+                269.611419169436,
+                -73.96547921207636,
+                40.80197032672464
+            ],
+            "BoerumHill": [
+                "25",
+                480.1856183898053,
+                543.2281452937605,
+                -73.98611395919674,
+                40.68563381664855
+            ],
+            "BoroughPark": [
+                "26",
+                475.64670197753003,
+                671.6771521884366,
+                -73.98866117295057,
+                40.63094962349446
+            ],
+            "BreezyPointFortTildenRiisBeach": [
+                "27",
+                621.3235142505146,
+                840.2087786140619,
+                -73.90690818476352,
+                40.55913320415824
+            ],
+            "BriarwoodJamaicaHills": [
+                "28",
+                796.2702311286703,
+                482.20711576001486,
+                -73.80872909465889,
+                40.711596401141854
+            ],
+            "BrightonBeach": [
+                "29",
+                524.5500969359418,
+                789.0960620271944,
+                -73.96121686930361,
+                40.5809220271805
+            ],
+            "BroadChannel": [
+                "30",
+                772.7531216134958,
+                735.674898669371,
+                -73.82192676109867,
+                40.60368733445051
+            ],
+            "BronxPark": [
+                "31",
+                677.3329107376921,
+                138.25849750720954,
+                -73.87547603397756,
+                40.857746727125615
+            ],
+            "Bronxdale": [
+                "32",
+                696.1763271151285,
+                123.51972134145035,
+                -73.86490121721387,
+                40.86400232690973
+            ],
+            "BrooklynHeights": [
+                "33",
+                463.90545011052745,
+                519.3408933695464,
+                -73.99525029588789,
+                40.695798318040076
+            ],
+            "BrooklynNavyYard": [
+                "34",
+                506.80896518120426,
+                507.47133968891285,
+                -73.97117309028442,
+                40.700848472854545
+            ],
+            "Brownsville": [
+                "35",
+                615.354725870624,
+                594.049594506112,
+                -73.91025783443185,
+                40.66400311960062
+            ],
+            "BushwickNorth": [
+                "36",
+                602.0745896116132,
+                508.23816781041387,
+                -73.9177105704285,
+                40.7005222210403
+            ],
+            "BushwickSouth": [
+                "37",
+                594.0034146593243,
+                521.2304193861346,
+                -73.92224006733494,
+                40.694994343565085
+            ],
+            "CambriaHeights": [
+                "38",
+                926.6613800257037,
+                522.764732418218,
+                -73.73555433273798,
+                40.69434150153474
+            ],
+            "Canarsie": [
+                "39",
+                634.1049542794644,
+                655.035658404493,
+                -73.8997353142195,
+                40.63803688195156
+            ],
+            "CarrollGardens": [
+                "40",
+                462.6474996077013,
+                558.3483975699346,
+                -73.99595625046635,
+                40.67919904686816
+            ],
+            "CentralHarlem": [
+                "41",
+                542.235401578364,
+                264.047380538148,
+                -73.95129197817676,
+                40.80433393640926
+            ],
+            "CentralHarlemNorth": [
+                "42",
+                560.981902779633,
+                231.2659949320805,
+                -73.94077154965183,
+                40.81825779589225
+            ],
+            "CentralPark": [
+                "43",
+                516.8224301048031,
+                315.48937195478356,
+                -73.96555359143049,
+                40.78247811401243
+            ],
+            "CharlestonTottenville": [
+                "44",
+                39.30507935016067,
+                919.0863308492699,
+                -74.23353357895387,
+                40.52549459789116
+            ],
+            "Chinatown": [
+                "45",
+                458.7354771598184,
+                480.17836780469224,
+                -73.99815165493723,
+                40.712459397638234
+            ],
+            "CityIsland": [
+                "46",
+                837.2551216970023,
+                133.7172401646094,
+                -73.78572861007798,
+                40.85967424242942
+            ],
+            "ClaremontBathgate": [
+                "47",
+                633.070598473103,
+                173.5886108873383,
+                -73.90031578874182,
+                40.84274911128607
+            ],
+            "ClintonEast": [
+                "48",
+                473.53803686768515,
+                363.07879557518754,
+                -73.98984454366774,
+                40.76225270062833
+            ],
+            "ClintonHill": [
+                "49",
+                522.5069588220504,
+                537.7443501541129,
+                -73.96236346664797,
+                40.68796741780308
+            ],
+            "ClintonWest": [
+                "50",
+                464.11089855150203,
+                353.703657639795,
+                -73.99513499940588,
+                40.76623760315835
+            ],
+            "Co-OpCity": [
+                "51",
+                761.4612027773401,
+                100.0248161880736,
+                -73.82826372092651,
+                40.87397308141861
+            ],
+            "CobbleHill": [
+                "52",
+                461.279123845452,
+                540.8371078344062,
+                -73.9967241750645,
+                40.68665132053575
+            ],
+            "CollegePoint": [
+                "53",
+                735.5473560807877,
+                319.17789883546357,
+                -73.84280642247117,
+                40.78091071729727
+            ],
+            "ColumbiaStreet": [
+                "54",
+                450.76910165528534,
+                525.3537699023727,
+                -74.00262233899706,
+                40.69323986535805
+            ],
+            "ConeyIsland": [
+                "55",
+                476.92555497417925,
+                798.3896760857024,
+                -73.98794348801296,
+                40.576960783232096
+            ],
+            "Corona": [
+                "57",
+                716.3464697133168,
+                387.6218900645181,
+                -73.85358184933483,
+                40.751819526479025
+            ],
+            "CountryClub": [
+                "58",
+                775.4858635666897,
+                176.6436628539086,
+                -73.82039316205066,
+                40.84145208376314
+            ],
+            "CrotonaPark": [
+                "59",
+                642.5677291584434,
+                183.47818978152645,
+                -73.89498605368918,
+                40.83855038179487
+            ],
+            "CrotonaParkEast": [
+                "60",
+                658.7577378832793,
+                194.2173972750752,
+                -73.8859003140208,
+                40.83399063191194
+            ],
+            "CrownHeightsNorth": [
+                "61",
+                563.6272658035159,
+                569.4611158744228,
+                -73.9392869871558,
+                40.67446937893319
+            ],
+            "CrownHeightsSouth": [
+                "62",
+                546.696181463165,
+                588.0889825655904,
+                -73.94878861419221,
+                40.66654044694774
+            ],
+            "CypressHills": [
+                "63",
+                672.5278116257687,
+                547.4438918555388,
+                -73.87817262792966,
+                40.68383977156708
+            ],
+            "Douglaston": [
+                "64",
+                919.9207590106234,
+                366.9301937679411,
+                -73.73933713043667,
+                40.76061559452716
+            ],
+            "DowntownBrooklynMetroTech": [
+                "65",
+                480.2357718545245,
+                520.4241035958839,
+                -73.98608581336116,
+                40.695337424078794
+            ],
+            "DUMBOVinegarHill": [
+                "66",
+                480.9199762576318,
+                504.1558195521502,
+                -73.98570184179003,
+                40.70225906321628
+            ],
+            "DykerHeights": [
+                "67",
+                430.8490737900138,
+                698.2778509966884,
+                -74.01380134392822,
+                40.619619388995275
+            ],
+            "EastChelsea": [
+                "68",
+                455.5893521759717,
+                395.60059574049956,
+                -73.99991724216163,
+                40.74842745701718
+            ],
+            "EastConcourseConcourseVillage": [
+                "69",
+                606.8521574556362,
+                200.27907915959076,
+                -73.91502942686542,
+                40.83141676970094
+            ],
+            "EastElmhurst": [
+                "70",
+                689.9495558106282,
+                360.4920351230394,
+                -73.86839564541391,
+                40.76335222706722
+            ],
+            "EastFlatbushFarragut": [
+                "71",
+                565.9806407889992,
+                640.3555976623175,
+                -73.93796628666554,
+                40.644288183229705
+            ],
+            "EastFlatbushRemsenVillage": [
+                "72",
+                593.983902963053,
+                621.3870093559526,
+                -73.92225101718653,
+                40.65236482780919
+            ],
+            "EastFlushing": [
+                "73",
+                798.8270622259006,
+                382.2366637332598,
+                -73.8072942157703,
+                40.75410890549845
+            ],
+            "EastHarlemNorth": [
+                "74",
+                567.0778212672449,
+                271.49452396234847,
+                -73.93735055529912,
+                40.80117036268824
+            ],
+            "EastHarlemSouth": [
+                "75",
+                552.1100723979471,
+                297.76160261519544,
+                -73.94575036977479,
+                40.790010807883654
+            ],
+            "EastNewYork": [
+                "76",
+                674.9369257649814,
+                601.2563166588516,
+                -73.8768206469473,
+                40.66093521621013
+            ],
+            "EastNewYorkPennsylvaniaAvenue": [
+                "77",
+                641.8943564039364,
+                588.0457617114153,
+                -73.89536394660148,
+                40.66655884495036
+            ],
+            "EastTremont": [
+                "78",
+                659.4328091609932,
+                168.38037585114944,
+                -73.88552146790707,
+                40.84496021783429
+            ],
+            "EastVillage": [
+                "79",
+                480.50019994401373,
+                444.53384679167357,
+                -73.98593741784,
+                40.72762017438806
+            ],
+            "EastWilliamsburg": [
+                "80",
+                568.0711919418536,
+                473.33623604469176,
+                -73.93679308139673,
+                40.71536984711055
+            ],
+            "Eastchester": [
+                "81",
+                746.5292093359749,
+                83.61664610671869,
+                -73.8366434696619,
+                40.88093548091534
+            ],
+            "Elmhurst": [
+                "82",
+                674.4063252024353,
+                416.6076277448883,
+                -73.8771184169276,
+                40.739495693228825
+            ],
+            "ElmhurstMaspeth": [
+                "83",
+                647.5800650742312,
+                419.36390348632995,
+                -73.8921731596361,
+                40.73832369169268
+            ],
+            "EltingvilleAnnadalePrincesBay": [
+                "84",
+                121.02225180887035,
+                911.6035706100374,
+                -74.1876743723275,
+                40.52868646710595
+            ],
+            "Erasmus": [
+                "85",
+                541.6451646224014,
+                636.062180140274,
+                -73.95162321575765,
+                40.64611636518116
+            ],
+            "FarRockaway": [
+                "86",
+                891.5764917245833,
+                738.6191889398324,
+                -73.75524377002088,
+                40.60243283366783
+            ],
+            "FinancialDistrictNorth": [
+                "87",
+                442.0839903235028,
+                493.4617357632378,
+                -74.00749637346439,
+                40.70680866507761
+            ],
+            "FinancialDistrictSouth": [
+                "88",
+                434.92346802697284,
+                501.5732775385841,
+                -74.01151481734429,
+                40.703357786826295
+            ],
+            "FlatbushDitmasPark": [
+                "89",
+                524.9933597948111,
+                655.3569717245555,
+                -73.96096811273968,
+                40.63790004856125
+            ],
+            "Flatiron": [
+                "90",
+                460.83824496582383,
+                410.0623831054254,
+                -73.996971593753,
+                40.742278727091666
+            ],
+            "Flatlands": [
+                "91",
+                580.0027702293592,
+                682.6576799869508,
+                -73.93009714836818,
+                40.62627283815731
+            ],
+            "Flushing": [
+                "92",
+                760.400881372916,
+                365.78536780517607,
+                -73.82885876719294,
+                40.76110222761328
+            ],
+            "FlushingMeadows-CoronaPark": [
+                "93",
+                739.0027227990795,
+                413.83203488720756,
+                -73.84086729056612,
+                40.74067588776818
+            ],
+            "FordhamSouth": [
+                "94",
+                634.4592546549102,
+                137.29543465888128,
+                -73.89953648288899,
+                40.85815549930459
+            ],
+            "ForestHills": [
+                "95",
+                726.8821901395568,
+                459.08339741230884,
+                -73.84766926370017,
+                40.72143219328305
+            ],
+            "ForestParkHighlandPark": [
+                "96",
+                684.3139470158785,
+                516.5153200923814,
+                -73.87155831661762,
+                40.697000553187095
+            ],
+            "FortGreene": [
+                "97",
+                500.1997045142343,
+                531.1186544262164,
+                -73.97488216931218,
+                40.69078683994088
+            ],
+            "FreshMeadows": [
+                "98",
+                852.3569568627281,
+                428.443781165377,
+                -73.77725354714488,
+                40.7344626726411
+            ],
+            "FreshkillsPark": [
+                "99",
+                123.2598507172952,
+                798.8285675775551,
+                -74.18641864470501,
+                40.57677370744454
+            ],
+            "GarmentDistrict": [
+                "100",
+                475.4236684178759,
+                383.63931480616156,
+                -73.98878633809994,
+                40.753512615044784
+            ],
+            "GlenOaks": [
+                "101",
+                970.3687912395108,
+                401.3246657272539,
+                -73.7110259852481,
+                40.74599381748727
+            ],
+            "Glendale": [
+                "102",
+                676.8696523931867,
+                501.1314772909682,
+                -73.8757360118929,
+                40.703545745694676
+            ],
+            "Gowanus": [
+                "106",
+                472.10793196986197,
+                571.7087940080964,
+                -73.99064711030134,
+                40.67351270710243
+            ],
+            "Gramercy": [
+                "107",
+                483.8591357774858,
+                422.89027482862,
+                -73.98405240239225,
+                40.73682420615288
+            ],
+            "Gravesend": [
+                "108",
+                488.5298383595946,
+                771.5419908777694,
+                -73.9814312309988,
+                40.58840350965403
+            ],
+            "GreatKills": [
+                "109",
+                186.56915592678706,
+                857.2596663879958,
+                -74.15088982717965,
+                40.5518630088256
+            ],
+            "GreatKillsPark": [
+                "110",
+                226.74706330816844,
+                871.5243534679466,
+                -74.12834221691637,
+                40.54578019344965
+            ],
+            "Green-WoodCemetery": [
+                "111",
+                472.84329685760895,
+                621.921574729713,
+                -73.99023442776084,
+                40.652137228340365
+            ],
+            "Greenpoint": [
+                "112",
+                545.3601115701313,
+                440.09646135466755,
+                -73.9495384089226,
+                40.7295072973755
+            ],
+            "GreenwichVillageNorth": [
+                "113",
+                465.5902070431621,
+                432.8731476177636,
+                -73.99430481999875,
+                40.73257910028254
+            ],
+            "GreenwichVillageSouth": [
+                "114",
+                460.1103287730657,
+                442.8405541374377,
+                -73.99738009612878,
+                40.7283403010385
+            ],
+            "GrymesHillClifton": [
+                "115",
+                298.9208179411944,
+                702.146732137262,
+                -74.08783872141927,
+                40.61797132742334
+            ],
+            "HamiltonHeights": [
+                "116",
+                547.1717156367667,
+                210.6506061719556,
+                -73.94852174715228,
+                40.82701266426187
+            ],
+            "HammelsArverne": [
+                "117",
+                830.3176125818281,
+                758.271822780298,
+                -73.7896219002447,
+                40.59405865249083
+            ],
+            "HeartlandVillageTodtHill": [
+                "118",
+                218.48526499560103,
+                775.8803185331344,
+                -74.1329786905549,
+                40.5865546077447
+            ],
+            "Highbridge": [
+                "119",
+                587.0236574060982,
+                185.18220080678293,
+                -73.92615706691343,
+                40.83782689831033
+            ],
+            "HighbridgePark": [
+                "120",
+                579.8522688232479,
+                164.35895544156665,
+                -73.93018160889065,
+                40.846667423074585
+            ],
+            "HillcrestPomonok": [
+                "121",
+                807.4689339017787,
+                442.85674768852186,
+                -73.80244444714886,
+                40.728333414251864
+            ],
+            "Hollis": [
+                "122",
+                881.0752236894332,
+                484.4570619047008,
+                -73.76113702117206,
+                40.71063929744004
+            ],
+            "Homecrest": [
+                "123",
+                518.9962076991214,
+                744.4361060647643,
+                -73.96433367996197,
+                40.59995429718291
+            ],
+            "HowardBeach": [
+                "124",
+                731.8105651678925,
+                607.5540009447286,
+                -73.84490348801367,
+                40.658254174931514
+            ],
+            "HudsonSq": [
+                "125",
+                442.102531034383,
+                447.66038681463397,
+                -74.00748596852422,
+                40.72629049315179
+            ],
+            "HuntsPoint": [
+                "126",
+                659.4042868031538,
+                245.82453317724867,
+                -73.88553747449004,
+                40.81207443257382
+            ],
+            "Inwood": [
+                "127",
+                599.2318782793009,
+                118.62164047072292,
+                -73.91930588365882,
+                40.86608109556123
+            ],
+            "InwoodHillPark": [
+                "128",
+                592.4783794078976,
+                89.14634775696322,
+                -73.92309590833632,
+                40.878589171152726
+            ],
+            "JacksonHeights": [
+                "129",
+                659.7969786399917,
+                374.70186175724666,
+                -73.88531709809247,
+                40.75731198443693
+            ],
+            "Jamaica": [
+                "130",
+                822.5525636785896,
+                499.1969878039963,
+                -73.79397960097519,
+                40.7043687459018
+            ],
+            "JamaicaEstates": [
+                "131",
+                854.4112738683762,
+                460.9102342437254,
+                -73.77610067627083,
+                40.72065519173928
+            ],
+            "JFKAirport": [
+                "132",
+                835.8213656099688,
+                634.0223082360753,
+                -73.78653322573794,
+                40.64698494636069
+            ],
+            "Kensington": [
+                "133",
+                497.85323807786335,
+                649.0401140452886,
+                -73.97619899276444,
+                40.64059007250145
+            ],
+            "KewGardens": [
+                "134",
+                760.6612941742351,
+                490.5412322330376,
+                -73.82871262502839,
+                40.708051085727526
+            ],
+            "KewGardensHills": [
+                "135",
+                774.0557871239434,
+                442.7529016392655,
+                -73.82119571271542,
+                40.728377577843865
+            ],
+            "KingsbridgeHeights": [
+                "136",
+                623.1002392069495,
+                120.54659377319331,
+                -73.905911096949,
+                40.86526414407239
+            ],
+            "KipsBay": [
+                "137",
+                497.3272042933386,
+                414.3898824079952,
+                -73.97649419989523,
+                40.74043869018017
+            ],
+            "LaGuardiaAirport": [
+                "138",
+                681.249755302415,
+                334.61202418520406,
+                -73.87327792336248,
+                40.77435176356476
+            ],
+            "Laurelton": [
+                "139",
+                911.1944194876123,
+                563.2856052541028,
+                -73.74423430192752,
+                40.677097770482156
+            ],
+            "LenoxHillEast": [
+                "140",
+                536.0939627964981,
+                355.47681373475643,
+                -73.95473851825648,
+                40.765483941452906
+            ],
+            "LenoxHillWest": [
+                "141",
+                527.3697115065006,
+                352.0320542347472,
+                -73.95963451784299,
+                40.766948093113946
+            ],
+            "LincolnSquareEast": [
+                "142",
+                488.349211249355,
+                336.30208430699713,
+                -73.98153259789292,
+                40.77363350885002
+            ],
+            "LincolnSquareWest": [
+                "143",
+                477.4577597869793,
+                330.81640736636473,
+                -73.98764481773665,
+                40.7759648256141
+            ],
+            "LittleItalyNoLiTa": [
+                "144",
+                460.93270982886315,
+                460.3607216873643,
+                -73.99691858061583,
+                40.720888914773376
+            ],
+            "LongIslandCityHuntersPoint": [
+                "145",
+                546.5133962696709,
+                402.7700404081261,
+                -73.94889119219026,
+                40.745379289436265
+            ],
+            "LongIslandCityQueensPlaza": [
+                "146",
+                571.5707276779867,
+                381.92200624350517,
+                -73.93482916209322,
+                40.754242670930786
+            ],
+            "Longwood": [
+                "147",
+                635.4929063204327,
+                227.92670615988027,
+                -73.89895640352644,
+                40.81967599134559
+            ],
+            "LowerEastSide": [
+                "148",
+                471.6650393892778,
+                464.9474459718185,
+                -73.99089565906723,
+                40.71893802769835
+            ],
+            "Madison": [
+                "149",
+                547.8598460148787,
+                732.7968620262254,
+                -73.9481355723466,
+                40.60491358318568
+            ],
+            "ManhattanBeach": [
+                "150",
+                555.8900705442647,
+                790.1484936826164,
+                -73.94362905658168,
+                40.58047345797497
+            ],
+            "ManhattanValley": [
+                "151",
+                512.1631240786228,
+                279.0467115332576,
+                -73.9681683671424,
+                40.79796201183503
+            ],
+            "Manhattanville": [
+                "152",
+                537.7983718230098,
+                231.9318013694865,
+                -73.95378201372542,
+                40.817975024370156
+            ],
+            "MarbleHill": [
+                "153",
+                615.1355836162111,
+                95.32126277309726,
+                -73.91038081580311,
+                40.875968992374126
+            ],
+            "MarineParkFloydBennettField": [
+                "154",
+                631.6646561582165,
+                758.4414389911835,
+                -73.901104795473,
+                40.5939863727841
+            ],
+            "MarineParkMillBasin": [
+                "155",
+                606.4111728028802,
+                710.0821370386984,
+                -73.91527690491318,
+                40.61459088548312
+            ],
+            "MarinersHarbor": [
+                "156",
+                157.3266579574847,
+                671.074837248656,
+                -74.16730054865099,
+                40.631206149745545
+            ],
+            "Maspeth": [
+                "157",
+                629.4818671464163,
+                453.0574539852969,
+                -73.90232976409712,
+                40.72399512052077
+            ],
+            "MeatpackingWestVillageWest": [
+                "158",
+                439.4331550464558,
+                427.0970688427187,
+                -74.00898400695739,
+                40.73503534670409
+            ],
+            "MelroseSouth": [
+                "159",
+                610.7367349267006,
+                231.26136499634595,
+                -73.91284942435747,
+                40.81825976224625
+            ],
+            "MiddleVillage": [
+                "160",
+                669.1800564149453,
+                466.36108492992935,
+                -73.88005136887638,
+                40.7183367482951
+            ],
+            "MidtownCenter": [
+                "161",
+                495.18196157115744,
+                373.01716581838264,
+                -73.97769809775782,
+                40.75802813531073
+            ],
+            "MidtownEast": [
+                "162",
+                504.70152956509264,
+                376.1707693718927,
+                -73.97235577101678,
+                40.75668755717123
+            ],
+            "MidtownNorth": [
+                "163",
+                495.41267189831706,
+                357.9767049711663,
+                -73.97756862445074,
+                40.764421373953795
+            ],
+            "MidtownSouth": [
+                "164",
+                481.89131923604873,
+                395.253996748128,
+                -73.98515672970387,
+                40.74857481381789
+            ],
+            "Midwood": [
+                "165",
+                532.3766692574718,
+                695.2150031187775,
+                -73.95682464198504,
+                40.620924068603486
+            ],
+            "MorningsideHeights": [
+                "166",
+                523.5756828795129,
+                251.98673997359583,
+                -73.96176370486104,
+                40.80945702071034
+            ],
+            "MorrisaniaMelrose": [
+                "167",
+                629.4426191362436,
+                209.4733904554887,
+                -73.90235178985442,
+                40.82751256507341
+            ],
+            "MottHavenPortMorris": [
+                "168",
+                602.9153277274745,
+                256.5417617026251,
+                -73.91723875303916,
+                40.80752219812566
+            ],
+            "MountHope": [
+                "169",
+                624.5059614946658,
+                158.72675791216898,
+                -73.9051222136958,
+                40.84905837424258
+            ],
+            "MurrayHill": [
+                "170",
+                493.7680399742676,
+                397.20395350598847,
+                -73.97849158241611,
+                40.74774578410796
+            ],
+            "MurrayHill-Queens": [
+                "171",
+                794.8149477464613,
+                348.7298812833178,
+                -73.80954579131294,
+                40.768351609875
+            ],
+            "NewDorpMidlandBeach": [
+                "172",
+                268.30691511937766,
+                810.5696424417984,
+                -74.10501906739678,
+                40.57176892587429
+            ],
+            "NorthCorona": [
+                "173",
+                699.4973102796066,
+                385.8349224950216,
+                -73.86303750058539,
+                40.75257921472087
+            ],
+            "Norwood": [
+                "174",
+                671.0135634416947,
+                92.56704301836726,
+                -73.87902241529096,
+                40.877137693036715
+            ],
+            "OaklandGardens": [
+                "175",
+                892.6851403000474,
+                409.1373767250625,
+                -73.75462160282436,
+                40.74267202982606
+            ],
+            "Oakwood": [
+                "176",
+                237.00777688226663,
+                833.4983423968661,
+                -74.12258396354352,
+                40.56199419834785
+            ],
+            "OceanHill": [
+                "177",
+                609.342101034912,
+                564.3516032028856,
+                -73.91363208486673,
+                40.67664407288932
+            ],
+            "OceanParkwaySouth": [
+                "178",
+                508.31919788426603,
+                703.687920046199,
+                -73.97032555638793,
+                40.617314802633096
+            ],
+            "OldAstoria": [
+                "179",
+                583.1455418156402,
+                341.15653287911846,
+                -73.9283334430512,
+                40.77157038487478
+            ],
+            "OzonePark": [
+                "180",
+                727.9981389299792,
+                566.8167000061658,
+                -73.84704299966504,
+                40.67559489536227
+            ],
+            "ParkSlope": [
+                "181",
+                488.56105160250445,
+                579.0821545652143,
+                -73.9814137143066,
+                40.67037431159366
+            ],
+            "Parkchester": [
+                "182",
+                708.4971242726897,
+                185.36657200133777,
+                -73.85798685679671,
+                40.83774861811204
+            ],
+            "PelhamBay": [
+                "183",
+                755.5487645392423,
+                158.45770687273762,
+                -73.83158174721974,
+                40.84917258822991
+            ],
+            "PelhamBayPark": [
+                "184",
+                797.4734996307525,
+                113.13693037160556,
+                -73.80805382730439,
+                40.86840875498583
+            ],
+            "PelhamParkway": [
+                "185",
+                714.8998021058505,
+                146.1321435902937,
+                -73.85439371086571,
+                40.85440466218126
+            ],
+            "PennStationMadisonSqWest": [
+                "186",
+                468.91676847674535,
+                395.43603190204885,
+                -73.99243797287778,
+                40.74849742148733
+            ],
+            "PortRichmond": [
+                "187",
+                204.5573862674646,
+                678.2250755298155,
+                -74.14079493589529,
+                40.62816079589277
+            ],
+            "Prospect-LeffertsGardens": [
+                "188",
+                549.096293549519,
+                606.4023247572914,
+                -73.94744168511008,
+                40.65874447294574
+            ],
+            "ProspectHeights": [
+                "189",
+                513.1990044832928,
+                562.022127797085,
+                -73.96758703702427,
+                40.67763551299751
+            ],
+            "ProspectPark": [
+                "190",
+                510.83537408383563,
+                599.6429924002441,
+                -73.9689134927938,
+                40.66162202100197
+            ],
+            "QueensVillage": [
+                "191",
+                916.0100847359572,
+                473.13717559192446,
+                -73.7415317783205,
+                40.71545451989657
+            ],
+            "QueensboroHill": [
+                "192",
+                784.6872145270463,
+                406.5985075045028,
+                -73.81522941687646,
+                40.74375151767875
+            ],
+            "QueensbridgeRavenswood": [
+                "193",
+                558.7985185836442,
+                367.64082969969604,
+                -73.94199685228989,
+                40.76031352153135
+            ],
+            "RandallsIsland": [
+                "194",
+                589.8044544805598,
+                295.43134697880305,
+                -73.9245964996081,
+                40.79100089161344
+            ],
+            "RedHook": [
+                "195",
+                439.0865374641726,
+                566.924810045457,
+                -74.00917852674863,
+                40.67554888193383
+            ],
+            "RegoPark": [
+                "196",
+                698.9610143350728,
+                447.9775889485318,
+                -73.86333846678127,
+                40.72615558927606
+            ],
+            "RichmondHill": [
+                "197",
+                756.7207553893386,
+                522.2927426133974,
+                -73.83092403270341,
+                40.694542331366286
+            ],
+            "Ridgewood": [
+                "198",
+                630.5875197155692,
+                494.1242913114256,
+                -73.90170927824207,
+                40.70652680199923
+            ],
+            "RikersIsland": [
+                "199",
+                664.5346455304825,
+                295.12051317852456,
+                -73.88265834671475,
+                40.79113295819147
+            ],
+            "RiverdaleNorthRiverdaleFieldston": [
+                "200",
+                621.1828111674113,
+                39.788947655892116,
+                -73.90698714652353,
+                40.899529085873695
+            ],
+            "RockawayPark": [
+                "201",
+                734.3953675455996,
+                795.9925323878269,
+                -73.84345291180355,
+                40.57798254715808
+            ],
+            "RooseveltIsland": [
+                "202",
+                544.6241849221115,
+                363.9095397517667,
+                -73.94995140671973,
+                40.76189958127892
+            ],
+            "Rosedale": [
+                "203",
+                919.6795074482216,
+                608.4953975043463,
+                -73.73947251942427,
+                40.65785339565736
+            ],
+            "RossvilleWoodrow": [
+                "204",
+                85.11362733284477,
+                884.2949972050119,
+                -74.20782608560842,
+                40.54033400638202
+            ],
+            "SaintAlbans": [
+                "205",
+                877.4951335763617,
+                530.1442686206428,
+                -73.76314614712804,
+                40.69120145877637
+            ],
+            "SaintGeorgeNewBrighton": [
+                "206",
+                273.1296144594962,
+                652.8391875884263,
+                -74.10231259629798,
+                40.63897225598103
+            ],
+            "SaintMichaelsCemeteryWoodside": [
+                "207",
+                634.7862531401624,
+                359.0014299486065,
+                -73.89935297322204,
+                40.7639858143131
+            ],
+            "SchuylervilleEdgewaterPark": [
+                "208",
+                769.881053603749,
+                219.35229153854016,
+                -73.82353854912732,
+                40.82331740509629
+            ],
+            "Seaport": [
+                "209",
+                448.90781014805543,
+                488.1366246451071,
+                -74.00366688507292,
+                40.70907402005285
+            ],
+            "SheepsheadBay": [
+                "210",
+                561.4533174477401,
+                763.0478784314764,
+                -73.94050699445467,
+                40.5920233696173
+            ],
+            "SoHo": [
+                "211",
+                452.70168860416743,
+                453.3087807127158,
+                -74.00153778232989,
+                40.723888229336204
+            ],
+            "SoundviewBruckner": [
+                "212",
+                687.6617470477358,
+                208.5560934812238,
+                -73.8696795505176,
+                40.82790208962723
+            ],
+            "SoundviewCastleHill": [
+                "213",
+                743.4745134958939,
+                219.33494088877342,
+                -73.83835774737729,
+                40.823324773431
+            ],
+            "SouthBeachDonganHills": [
+                "214",
+                303.0663271709345,
+                775.3359865059901,
+                -74.0855122855109,
+                40.586786593147934
+            ],
+            "SouthJamaica": [
+                "215",
+                827.926253490732,
+                522.5625118024909,
+                -73.79096391719631,
+                40.69442754569664
+            ],
+            "SouthOzonePark": [
+                "216",
+                777.1493307244964,
+                565.5029759812314,
+                -73.81945963386055,
+                40.67615403559056
+            ],
+            "SouthWilliamsburg": [
+                "217",
+                529.219002027472,
+                500.26032886767644,
+                -73.9585967066515,
+                40.703916364285526
+            ],
+            "SpringfieldGardensNorth": [
+                "218",
+                859.8729123619851,
+                575.0520661935152,
+                -73.77303563619833,
+                40.672089695795
+            ],
+            "SpringfieldGardensSouth": [
+                "219",
+                875.0723725386779,
+                598.3208050374233,
+                -73.76450578667125,
+                40.662184881261
+            ],
+            "SpuytenDuyvilKingsbridge": [
+                "220",
+                614.6299326516746,
+                80.1578006814234,
+                -73.91066458421268,
+                40.882403062621094
+            ],
+            "Stapleton": [
+                "221",
+                324.10702930760453,
+                700.2736298704258,
+                -74.07370436463188,
+                40.61876923446598
+            ],
+            "StarrettCity": [
+                "222",
+                664.9863587006985,
+                632.746332690469,
+                -73.88240484788476,
+                40.64752825332953
+            ],
+            "Steinway": [
+                "223",
+                623.9975299458893,
+                327.3761929506436,
+                -73.90540754255323,
+                40.777426814837966
+            ],
+            "StuyTownPeterCooperVillage": [
+                "224",
+                497.1427157910657,
+                434.6566213373735,
+                -73.97659773378035,
+                40.73182066935712
+            ],
+            "StuyvesantHeights": [
+                "225",
+                576.8107624906406,
+                537.2722631682554,
+                -73.93188848473041,
+                40.68816830820081
+            ],
+            "Sunnyside": [
+                "226",
+                589.668220836058,
+                420.8332615295367,
+                -73.9246729531449,
+                40.73769889457409
+            ],
+            "SunsetParkEast": [
+                "227",
+                447.15199464163743,
+                645.995884044547,
+                -74.0046522386245,
+                40.64188641436721
+            ],
+            "SunsetParkWest": [
+                "228",
+                435.35752382391365,
+                621.4108404292492,
+                -74.0112712277305,
+                40.65235468137798
+            ],
+            "SuttonPlaceTurtleBayNorth": [
+                "229",
+                517.548357373802,
+                376.0728904908319,
+                -73.96514620522728,
+                40.756729165308705
+            ],
+            "TimesSqTheatreDistrict": [
+                "230",
+                483.6024177867803,
+                368.8074761977332,
+                -73.98419647105034,
+                40.75981760723498
+            ],
+            "TriBeCaCivicCenter": [
+                "231",
+                441.4004477414128,
+                467.6867518249346,
+                -74.00787997362538,
+                40.71777288213207
+            ],
+            "TwoBridgesSewardPark": [
+                "232",
+                485.6904875563341,
+                474.8344457334897,
+                -73.98302465831955,
+                40.7147325619319
+            ],
+            "UNTurtleBaySouth": [
+                "233",
+                508.0955470778281,
+                392.09301972379035,
+                -73.97045106793264,
+                40.74991869031181
+            ],
+            "UnionSq": [
+                "234",
+                472.4453869907884,
+                414.6281185041007,
+                -73.99045773248679,
+                40.740337391583246
+            ],
+            "UniversityHeightsMorrisHeights": [
+                "235",
+                605.1663012490026,
+                150.5692554328707,
+                -73.9159755196608,
+                40.85252120175716
+            ],
+            "UpperEastSideNorth": [
+                "236",
+                532.0435864412284,
+                320.2941681230441,
+                -73.9570115661435,
+                40.7804363643204
+            ],
+            "UpperEastSideSouth": [
+                "237",
+                516.6783251883171,
+                348.10983569108066,
+                -73.96563446227982,
+                40.76861514345687
+            ],
+            "UpperWestSideNorth": [
+                "238",
+                503.46657899804995,
+                293.77440157435194,
+                -73.97304881816372,
+                40.79170488894868
+            ],
+            "UpperWestSideSouth": [
+                "239",
+                493.5169002384937,
+                311.99788762473327,
+                -73.97863252058968,
+                40.783961745704644
+            ],
+            "VanCortlandtPark": [
+                "240",
+                665.7467136755877,
+                51.41065857569629,
+                -73.88197814105126,
+                40.89459916259517
+            ],
+            "VanCortlandtVillage": [
+                "241",
+                641.437965116871,
+                94.0406352836726,
+                -73.89562007076371,
+                40.8765124048093
+            ],
+            "VanNestMorrisPark": [
+                "242",
+                721.5343141442281,
+                164.08710026546032,
+                -73.85067046091372,
+                40.846782831599896
+            ],
+            "WashingtonHeightsNorth": [
+                "243",
+                575.1308416311222,
+                139.76296592509607,
+                -73.93283124664316,
+                40.857108150218416
+            ],
+            "WashingtonHeightsSouth": [
+                "244",
+                559.8635231728258,
+                176.0389657276828,
+                -73.94139917784713,
+                40.84170881097415
+            ],
+            "WestBrighton": [
+                "245",
+                272.1539617512608,
+                673.7908256848314,
+                -74.10286012697966,
+                40.630049401038384
+            ],
+            "WestChelseaHudsonYards": [
+                "246",
+                448.2869142850104,
+                384.1178566762974,
+                -74.00401532825592,
+                40.75330917766074
+            ],
+            "WestConcourse": [
+                "247",
+                590.138917111617,
+                205.99820712086512,
+                -73.92440880110551,
+                40.82898826835092
+            ],
+            "WestFarmsBronxRiver": [
+                "248",
+                683.0112919864478,
+                193.8058775296522,
+                -73.87228935911898,
+                40.83416536446751
+            ],
+            "WestVillage": [
+                "249",
+                450.31853401692933,
+                428.17695648972585,
+                -74.00287519496116,
+                40.734576137184256
+            ],
+            "WestchesterVillageUnionport": [
+                "250",
+                725.15109992816,
+                198.66606998658972,
+                -73.84864074155857,
+                40.83210168233361
+            ],
+            "Westerleigh": [
+                "251",
+                232.08285273387446,
+                704.7085844713583,
+                -74.12534780261608,
+                40.616880010115686
+            ],
+            "Whitestone": [
+                "252",
+                783.9255260207574,
+                302.0397782414366,
+                -73.81565687208011,
+                40.78819304953518
+            ],
+            "WilletsPoint": [
+                "253",
+                738.3315099791216,
+                366.89449272330967,
+                -73.8412439713356,
+                40.76063077008372
+            ],
+            "WilliamsbridgeOlinville": [
+                "254",
+                706.7842722900095,
+                80.73772186182032,
+                -73.85894809946616,
+                40.88215700540927
+            ],
+            "Williamsburg(NorthSide)": [
+                "255",
+                531.3190688197792,
+                465.2627068153379,
+                -73.95741816126062,
+                40.718803934629115
+            ],
+            "Williamsburg(SouthSide)": [
+                "256",
+                526.8882854972035,
+                483.89129842711554,
+                -73.95990469134718,
+                40.71087996863703
+            ],
+            "WindsorTerrace": [
+                "257",
+                494.6746156977024,
+                618.4575106585253,
+                -73.97798281734052,
+                40.65361209336583
+            ],
+            "Woodhaven": [
+                "258",
+                712.4530373082962,
+                535.9725268174516,
+                -73.85576682118072,
+                40.68872139075383
+            ],
+            "WoodlawnWakefield": [
+                "259",
+                718.7814226187475,
+                43.55403600592399,
+                -73.85221536778567,
+                40.8979319777327
+            ],
+            "Woodside": [
+                "260",
+                622.3957097981765,
+                405.46200335743197,
+                -73.90630647479627,
+                40.74423473595506
+            ],
+            "WorldTradeCenter": [
+                "261",
+                432.2347983507789,
+                487.98283638343855,
+                -74.01302368328423,
+                40.70913944195659
+            ],
+            "YorkvilleEast": [
+                "262",
+                550.5102282068401,
+                331.07980022560514,
+                -73.94664819312233,
+                40.77585289012494
+            ],
+            "YorkvilleWest": [
+                "263",
+                542.7376719751337,
+                324.2249217273056,
+                -73.95101010692234,
+                40.77876598352949
+            ]
+        }
+
+        $(document).ready(function() {
+                $('.select-pickup').select2();
+            });
+
+        $(document).ready(function() {
+            $('.select-dropoff').select2();
+        });
+
+        function load_func_1() {
+            document.getElementById('iframe1').src = "data/arc_kepler.html";
+            document.getElementById('iframe1').height = 500;
+            document.getElementById('arc_info').style.display = "contents";
+        }
+
+        function load_func_2() {
+            document.getElementById('iframe2').src = "data/hex_pickup.html";
+            document.getElementById('iframe2').height = 500;
+            document.getElementById('pu_hex_info').style.display = "contents";
+        }
+
+        function load_func_3() {
+            document.getElementById('iframe3').src = "data/hex_dropoff.html";
+            document.getElementById('iframe3').height = 500;
+            document.getElementById('do_hex_info').style.display = "contents";
+        }
+
+        function load_func_4() {
+            document.getElementById('iframe4').src = "data/hex_both.html";
+            document.getElementById('iframe4').height = 500;
+            document.getElementById('all_hex_info').style.display = "contents";
+        }
+
+        function go_func() {
+            let map = d3.select("#big-map");
+
+            map.selectAll("path").attr("fill", "none");
+            map.selectAll("circle").remove();
+            map.selectAll("path.trip").remove();
+            map.selectAll("text").remove();
+
+            let selected_pu = document.getElementById("select-pickup");
+            let selected_do = document.getElementById("select-dropoff");
+
+            if (selected_pu.value == selected_do.value) { 
+                map.append("text")
+                    .attr("class", "error")
+                    .attr("x", 200)
+                    .attr("y", 150)
+                    .attr("fill", "red")
+                    .attr("font-size", "12px")
+                    .attr("font-family", "Helvetica")
+                    .attr("text-anchor", "middle")
+                    .text("Please select different pick-up/drop-off zones.")
+            } else {
+                map.select("#" + selected_pu.value).attr("fill", "goldenrod");
+                map.select("#" + selected_do.value).attr("fill", "dodgerblue");
+
+                let startPoint = [reverse_lookup[selected_pu.value][1], reverse_lookup[selected_pu.value][2]];
+                let endPoint = [reverse_lookup[selected_do.value][1], reverse_lookup[selected_do.value][2]];
+
+                let controlPoint1 = [startPoint[0] + (endPoint[0] - startPoint[0]) / 2, startPoint[1]];
+                let controlPoint2 = [startPoint[0] + (endPoint[0] - startPoint[0]) / 2, endPoint[1]];
+
+                let pathX = d3.path();
+                pathX.moveTo(startPoint[0], startPoint[1]);
+                pathX.bezierCurveTo(controlPoint1[0], controlPoint1[1], controlPoint2[0], controlPoint2[1], endPoint[0], endPoint[1]);
+                pathString = pathX.toString();
+
+                map.append("circle")
+                    .attr("class", "point")
+                    .attr("cx", startPoint[0])
+                    .attr("cy", startPoint[1])
+                    .attr("r", 5)
+                    .attr("fill", "red")
+                    .attr("stroke", "none")
+                    .attr("stroke-width", 1);
+            
+                map.append("circle")
+                    .attr("class", "point")
+                    .attr("cx", endPoint[0])
+                    .attr("cy", endPoint[1])
+                    .attr("r", 5)
+                    .attr("fill", "red")
+                    .attr("stroke", "none")
+                    .attr("stroke-width", 1);
+
+                map.append("path")
+                    .attr("class", "trip")
+                    .attr("d", pathString)
+                    .attr("stroke", "red")
+                    .attr("stroke-width", 2)
+                    .attr("fill", "none")
+                    .attr("opacity", 1);
+
+                map.append("text")
+                    .attr("class", "info")
+                    .attr("x", 200)
+                    .attr("y", 150)
+                    .attr("fill", "white")
+                    .attr("font-size", "12px")
+                    .attr("font-family", "Helvetica")
+                    .attr("text-anchor", "middle")
+                    .text("This trip is expected to cost...")
+
+                // calculate duration and price
+                let puXY = [reverse_lookup[selected_pu.value][3], reverse_lookup[selected_pu.value][4]]
+                let doXY = [reverse_lookup[selected_do.value][3], reverse_lookup[selected_do.value][4]]
+
+                // model from ipynb
+                function priceCalc(pu, dof) { 
+                    let dx = dof[0] - pu[0];
+                    let dy = dof[1] - pu[1];
+
+                    let coef = [-45.67980365,   1.97490387];
+                    let int = 14.928099797940066;
+
+                    let amount = (dx * coef[0]) + (dy * coef[1]) + int;
+
+                    if (amount < 15) {
+                        // console.log("edited");
+                        amount = Math.sqrt(Math.pow(dof[0] - pu[0], 2) + Math.pow(dof[1] - pu[1], 2)) * 100
+                    }
+
+                    // console.log(coef, int, amount, dx, dy);
+
+                    return "$" + Math.max(amount.toFixed(2), 14.59);
+                }
+
+                function distCalc(pu, dof) { 
+                    let dx = dof[0] - pu[0];
+                    let dy = dof[1] - pu[1];
+
+                    let coef = [-27.43802579, -14.41406507];
+                    let int = 13.99689036820251;
+
+                    let amount = (dx * coef[0]) + (dy * coef[1]) + int;
+
+                    if (amount < 10) {
+                        amount = Math.sqrt(Math.pow(dof[0] - pu[0], 2) + Math.pow(dof[1] - pu[1], 2)) * 60
+                    }
+
+                    // console.log(coef, int, amount, dx, dy);
+
+                    return Math.round(amount) + "m" +  Math.round((amount % 1) * 60) + "s"
+                }
+                
+                map.append("text")
+                    .attr("class", "info")
+                    .attr("x", 200)
+                    .attr("y", 190)
+                    .attr("font-family", "Helvetica")
+                    .attr("text-anchor", "middle")
+                    .attr("font-size", "36px")
+                    .attr("fill", "#A4D563")
+                    .attr("font-weight", "bold")
+                    .text(priceCalc(puXY, doXY)); 
+
+                map.append("text")
+                    .attr("class", "info")
+                    .attr("x", 200)
+                    .attr("y", 220)
+                    .attr("fill", "white")
+                    .attr("font-size", "12px")
+                    .attr("font-family", "Helvetica")
+                    .attr("text-anchor", "middle")
+                    .text("... and last ...")
+
+                map.append("text")
+                    .attr("class", "info")
+                    .attr("x", 200)
+                    .attr("y", 260)
+                    .attr("font-family", "Helvetica")
+                    .attr("text-anchor", "middle")
+                    .attr("font-size", "36px")
+                    .attr("fill", "#FFD854")
+                    .attr("font-weight", "bold")
+                    .text(distCalc(puXY, doXY)); 
+            }
+        }
+
+        requestData();
+
+    </script>
+</html>
+
+
